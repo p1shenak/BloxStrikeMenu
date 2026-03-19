@@ -1,8 +1,8 @@
 --[[
-    TERMINATOR v4.6 // GHOST UPDATE
-    - NEW: Anti-Flash (Мгновенное прозрение)
-    - NEW: Anti-Smoke (Прозрачный дым)
-    - FIXED: Tracers & FullBright
+    TERMINATOR v4.7 // PERFORMANCE FIX
+    - FIXED: Lag from Anti-Flash/Smoke
+    - FIXED: Wall-Piercing ESP (Highlight Mode)
+    - NEW: Optimized Target System
 ]]
 
 local p = game:GetService("Players")
@@ -10,133 +10,84 @@ local lp = p.LocalPlayer
 local rs = game:GetService("RunService")
 local cg = game:GetService("CoreGui")
 local uis = game:GetService("UserInputService")
-local tw = game:GetService("TweenService")
 local lighting = game:GetService("Lighting")
 
--- Очистка старого
+-- Удаление старого мусора
 for _, v in pairs(cg:GetChildren()) do if v.Name:find("Terminator") then v:Destroy() end end
 
 --------------------------------------------------
--- АНИМАЦИЯ ЗАГРУЗКИ v4.6
+-- ИНТЕРФЕЙС (УПРОЩЕННЫЙ ДЛЯ ФПС)
 --------------------------------------------------
-local loader = Instance.new("ScreenGui", cg)
-loader.Name = "Terminator_Loader"
-local l_main = Instance.new("Frame", loader)
-l_main.Size = UDim2.new(0, 300, 0, 100); l_main.Position = UDim2.new(0.5, -150, 0.5, -50)
-l_main.BackgroundColor3 = Color3.fromRGB(5, 5, 5); Instance.new("UICorner", l_main)
-local l_txt = Instance.new("TextLabel", l_main)
-l_txt.Size = UDim2.new(1, 0, 1, 0); l_txt.Text = "TERMINATOR v4.6: GHOST"; l_txt.TextColor3 = Color3.new(1, 0, 0)
-l_txt.Font = Enum.Font.GothamBold; l_txt.TextSize = 20; l_txt.BackgroundTransparency = 1
-task.spawn(function() task.wait(2); loader:Destroy() end)
-task.wait(2.1)
-
---------------------------------------------------
--- ИНТЕРФЕЙС
---------------------------------------------------
-local sg = Instance.new("ScreenGui", cg); sg.Name = "Terminator_V4_6"
+local sg = Instance.new("ScreenGui", cg); sg.Name = "Terminator_V4_7"
 local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 350, 0, 420); main.Position = UDim2.new(0.5, -175, 0.5, -210)
-main.BackgroundColor3 = Color3.fromRGB(12, 12, 12); main.Active = true; main.Draggable = true
-Instance.new("UICorner", main); Instance.new("UIStroke", main).Color = Color3.fromRGB(255, 0, 0)
+main.Size = UDim2.new(0, 320, 0, 380); main.Position = UDim2.new(0.5, -160, 0.5, -190)
+main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); main.Active = true; main.Draggable = true
+Instance.new("UIStroke", main).Color = Color3.fromRGB(255, 0, 0)
 
 local tabFrame = Instance.new("Frame", main)
 tabFrame.Size = UDim2.new(1, 0, 0, 40); tabFrame.BackgroundTransparency = 1
 
-local mainTabBtn = Instance.new("TextButton", tabFrame)
-mainTabBtn.Size = UDim2.new(0.5, 0, 1, 0); mainTabBtn.Text = "MAIN"; mainTabBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-mainTabBtn.TextColor3 = Color3.new(1, 1, 1); mainTabBtn.Font = Enum.Font.GothamBold
+local b1 = Instance.new("TextButton", tabFrame); b1.Size = UDim2.new(0.5,0,1,0); b1.Text = "COMBAT"; b1.BackgroundColor3 = Color3.fromRGB(200,0,0); b1.TextColor3 = Color3.new(1,1,1)
+local b2 = Instance.new("TextButton", tabFrame); b2.Size = UDim2.new(0.5,0,1,0); b2.Position = UDim2.new(0.5,0,0,0); b2.Text = "VISUALS"; b2.BackgroundColor3 = Color3.fromRGB(30,30,30); b2.TextColor3 = Color3.new(1,1,1)
 
-local visTabBtn = Instance.new("TextButton", tabFrame)
-visTabBtn.Size = UDim2.new(0.5, 0, 1, 0); visTabBtn.Position = UDim2.new(0.5, 0, 0, 0); visTabBtn.Text = "VISUALS"
-visTabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); visTabBtn.TextColor3 = Color3.new(1, 1, 1); visTabBtn.Font = Enum.Font.GothamBold
+local p1 = Instance.new("ScrollingFrame", main); p1.Size = UDim2.new(1,-20,1,-60); p1.Position = UDim2.new(0,10,0,50); p1.BackgroundTransparency = 1; p1.Visible = true; p1.ScrollBarThickness = 0
+local p2 = Instance.new("ScrollingFrame", main); p2.Size = UDim2.new(1,-20,1,-60); p2.Position = UDim2.new(0,10,0,50); p2.BackgroundTransparency = 1; p2.Visible = false; p2.ScrollBarThickness = 0
+Instance.new("UIListLayout", p1).Padding = UDim.new(0,5); Instance.new("UIListLayout", p2).Padding = UDim.new(0,5)
 
-local mainPage = Instance.new("ScrollingFrame", main)
-mainPage.Size = UDim2.new(1, -20, 1, -60); mainPage.Position = UDim2.new(0, 10, 0, 50); mainPage.BackgroundTransparency = 1; mainPage.Visible = true; mainPage.ScrollBarThickness = 0
-Instance.new("UIListLayout", mainPage).Padding = UDim.new(0, 5)
+b1.MouseButton1Click:Connect(function() p1.Visible = true; p2.Visible = false; b1.BackgroundColor3 = Color3.fromRGB(200,0,0); b2.BackgroundColor3 = Color3.fromRGB(30,30,30) end)
+b2.MouseButton1Click:Connect(function() p1.Visible = false; p2.Visible = true; b2.BackgroundColor3 = Color3.fromRGB(200,0,0); b1.BackgroundColor3 = Color3.fromRGB(30,30,30) end)
 
-local visPage = Instance.new("ScrollingFrame", main)
-visPage.Size = UDim2.new(1, -20, 1, -60); visPage.Position = UDim2.new(0, 10, 0, 50); visPage.BackgroundTransparency = 1; visPage.Visible = false; visPage.ScrollBarThickness = 0
-Instance.new("UIListLayout", visPage).Padding = UDim.new(0, 5)
-
-mainTabBtn.MouseButton1Click:Connect(function()
-    mainPage.Visible = true; visPage.Visible = false
-    mainTabBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); visTabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-end)
-
-visTabBtn.MouseButton1Click:Connect(function()
-    mainPage.Visible = false; visPage.Visible = true
-    visTabBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); mainTabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-end)
-
---------------------------------------------------
--- ФУНКЦИИ
---------------------------------------------------
-_G.Aimbot = false; _G.Spin = false
-_G.BoxESP = false; _G.Tracers = false; _G.FullBright = false
-_G.AntiFlash = false; _G.AntiSmoke = false
+_G.Aimbot = false; _G.ESP = false; _G.AntiFlash = false; _G.AntiSmoke = false
 
 local function addTgl(txt, var, parent)
-    local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(1, 0, 0, 40); b.BackgroundColor3 = Color3.fromRGB(25, 25, 25); b.Text = txt; b.TextColor3 = Color3.new(1, 1, 1)
-    b.Font = Enum.Font.Gotham; b.TextSize = 13; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function()
+    local btn = Instance.new("TextButton", parent); btn.Size = UDim2.new(1,0,0,40); btn.BackgroundColor3 = Color3.fromRGB(25,25,25); btn.Text = txt; btn.TextColor3 = Color3.new(1,1,1); btn.Font = Enum.Font.Gotham; Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(function()
         _G[var] = not _G[var]
-        b.BackgroundColor3 = _G[var] and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(25, 25, 25)
-        
-        if var == "FullBright" then
-            lighting.Brightness = _G.FullBright and 4 or 1
-            lighting.GlobalShadows = not _G.FullBright
-        end
+        btn.BackgroundColor3 = _G[var] and Color3.fromRGB(150,0,0) or Color3.fromRGB(25,25,25)
     end)
 end
 
--- MAIN
-addTgl("ACTIVATE AIMBOT", "Aimbot", mainPage)
-addTgl("ACTIVATE SPINBOT", "Spin", mainPage)
-
--- VISUALS
-addTgl("BOX ESP", "BoxESP", visPage)
-addTgl("TRACERS", "Tracers", visPage)
-addTgl("FULLBRIGHT", "FullBright", visPage)
-addTgl("ANTI-FLASH", "AntiFlash", visPage)
-addTgl("ANTI-SMOKE", "AntiSmoke", visPage)
+addTgl("HARD AIMBOT", "Aimbot", p1)
+addTgl("WALLHACK (HIGHLIGHT)", "ESP", p2)
+addTgl("NO FLASH", "AntiFlash", p2)
+addTgl("NO SMOKE", "AntiSmoke", p2)
 
 --------------------------------------------------
--- ЯДРО ЛОГИКИ
+-- ЛОГИКА ОПТИМИЗАЦИИ
 --------------------------------------------------
+
+-- Чистка дыма (раз в 2 секунды, чтобы не лагало)
+task.spawn(function()
+    while task.wait(2) do
+        if _G.AntiSmoke then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("ParticleEmitter") and (v.Name:lower():find("smoke") or v.Name:lower():find("gas")) then
+                    v.Enabled = false
+                end
+            end
+        end
+    end
+end)
+
+-- Анти-Флеш через слежку за GUI
+lp.PlayerGui.DescendantAdded:Connect(function(v)
+    if _G.AntiFlash and v:IsA("Frame") and (v.Name:lower():find("flash") or v.Name:lower():find("blind")) then
+        task.wait()
+        v.Visible = false
+    end
+end)
+
 rs.RenderStepped:Connect(function()
-    -- ANTI-FLASH
-    if _G.AntiFlash then
-        -- Ищем в PlayerGui объекты, которые отвечают за ослепление
-        for _, v in pairs(lp.PlayerGui:GetDescendants()) do
-            if v:IsA("Frame") and (v.Name:lower():find("flash") or v.Name:lower():find("blind")) then
-                v.BackgroundTransparency = 1
-                v.Visible = false
-            end
-        end
-    end
-
-    -- ANTI-SMOKE
-    if _G.AntiSmoke then
-        -- Ищем частицы или меши дыма в Workspace
-        for _, v in pairs(workspace:GetDescendants()) do
-            if v:IsA("ParticleEmitter") and (v.Name:lower():find("smoke") or v.Name:lower():find("gas")) then
-                v.Enabled = false
-            elseif v:IsA("BasePart") and v.Name:lower():find("smoke") then
-                v.Transparency = 1
-                v.CanCollide = false
-            end
-        end
-    end
-
-    -- AIMBOT (Улучшенный)
+    -- АИМБОТ
     if _G.Aimbot then
-        local target = nil
-        local dist = math.huge
+        local target, closestDist = nil, math.huge
         for _, pl in pairs(p:GetPlayers()) do
             if pl ~= lp and pl.Team ~= lp.Team and pl.Character and pl.Character:FindFirstChild("Head") then
-                local mag = (pl.Character.Head.Position - lp.Character.Head.Position).Magnitude
-                if mag < dist then dist = mag; target = pl end
+                local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(pl.Character.Head.Position)
+                if onScreen then
+                    local mag = (Vector2.new(pos.X, pos.Y) - uis:GetMouseLocation()).Magnitude
+                    if mag < closestDist then closestDist = mag; target = pl end
+                end
             end
         end
         if target then
@@ -144,24 +95,25 @@ rs.RenderStepped:Connect(function()
         end
     end
 
-    -- VISUALS (ESP & TRACERS)
-    for _, pl in pairs(p:GetPlayers()) do
-        if pl ~= lp and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
-            -- Box ESP logic
-            local box = pl.Character:FindFirstChild("BoxESP")
-            if _G.BoxESP then
-                if not box then
-                    box = Instance.new("BoxHandleAdornment", pl.Character)
-                    box.Name = "BoxESP"; box.AlwaysOnTop = true; box.Adornee = pl.Character
-                    box.Size = Vector3.new(4, 6, 1); box.Transparency = 0.7; box.Color3 = Color3.new(1,0,0)
-                end
-            elseif box then box:Destroy() end
+    -- ВХ (HIGHLIGHT - ВИДНО СКВОЗЬ СТЕНЫ)
+    if _G.ESP then
+        for _, pl in pairs(p:GetPlayers()) do
+            if pl ~= lp and pl.Character then
+                local hl = pl.Character:FindFirstChild("T_ESP") or Instance.new("Highlight", pl.Character)
+                hl.Name = "T_ESP"
+                hl.Enabled = true
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- ПРИНУДИТЕЛЬНО ПОВЕРХ ВСЕГО
+                hl.FillColor = (pl.Team ~= lp.Team) and Color3.new(1,0,0) or Color3.new(0,1,0)
+                hl.FillTransparency = 0.4
+                hl.OutlineColor = Color3.new(1,1,1)
+            end
+        end
+    else
+        for _, pl in pairs(p:GetPlayers()) do
+            if pl.Character and pl.Character:FindFirstChild("T_ESP") then pl.Character.T_ESP.Enabled = false end
         end
     end
 end)
 
-uis.InputBegan:Connect(function(k, m)
-    if not m and k.KeyCode == Enum.KeyCode.L then main.Visible = not main.Visible end
-end)
-
-print("TERMINATOR v4.6 LOADED")
+uis.InputBegan:Connect(function(k, m) if not m and k.KeyCode == Enum.KeyCode.L then main.Visible = not main.Visible end end)
+print("TERMINATOR v4.7 LOADED")
