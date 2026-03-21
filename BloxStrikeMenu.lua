@@ -1,8 +1,9 @@
 --[[
-    TERMINATOR v17.3 // PLAYERGUI EDITION
-    - FIX: Menu now uses PlayerGui (Works on all executors)
-    - NEW: Auto-Show after Loading
-    - FEATURES: Anime Girl (ID: 11318961749), FullBright, Aim, ESP
+    TERMINATOR v17.5 // FIXED STATIC IMAGE
+    - FIX: Removed sprite animation (now shows full image)
+    - IMAGE ID: 11318961749
+    - INTERFACE: PlayerGui (Stable)
+    - HOTKEY: [L] to Toggle Menu
 ]]
 
 local p = game:GetService("Players")
@@ -11,15 +12,13 @@ local rs = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
 local lighting = game:GetService("Lighting")
 local cam = workspace.CurrentCamera
-
--- ПЕРЕКЛЮЧАЕМ НА PLAYERGUI ДЛЯ СТАБИЛЬНОСТИ
 local pg = lp:WaitForChild("PlayerGui")
 
 -- Очистка старых объектов
 for _, v in pairs(pg:GetChildren()) do if v.Name:find("Terminator") then v:Destroy() end end
 
 --------------------------------------------------
--- [ 1. ЭКРАН ЗАГРУЗКИ (0-100%) ]
+-- [ 1. ЭКРАН ЗАГРУЗКИ ]
 --------------------------------------------------
 local loader = Instance.new("ScreenGui", pg); loader.Name = "Terminator_Loader"
 local l_main = Instance.new("Frame", loader); l_main.Size = UDim2.new(0, 300, 0, 100); l_main.Position = UDim2.new(0.5, -150, 0.5, -50); l_main.BackgroundColor3 = Color3.fromRGB(5,5,10); Instance.new("UICorner", l_main); Instance.new("UIStroke", l_main).Color = Color3.new(0,1,1)
@@ -40,25 +39,28 @@ local function Notify(title, text, color)
     local n_sg = pg:FindFirstChild("T_Notify") or Instance.new("ScreenGui", pg); n_sg.Name = "T_Notify"
     local n_frame = Instance.new("Frame", n_sg); n_frame.Size = UDim2.new(0, 200, 0, 60); n_frame.Position = UDim2.new(1, 10, 0.8, 0); n_frame.BackgroundColor3 = Color3.fromRGB(10, 10, 15); Instance.new("UICorner", n_frame); Instance.new("UIStroke", n_frame).Color = color or Color3.new(0, 1, 1)
     local t_lab = Instance.new("TextLabel", n_frame); t_lab.Size = UDim2.new(1, 0, 0, 25); t_lab.Text = title; t_lab.TextColor3 = color; t_lab.Font = Enum.Font.CodeBold; t_lab.BackgroundTransparency = 1; t_lab.TextSize = 14
-    local d_lab = Instance.new("TextLabel", n_frame); d_lab.Size = UDim2.new(1, 0, 0, 30); d_lab.Position = UDim2.new(0, 0, 0, 25); d_lab.Text = text; d_lab.TextColor3 = Color3.new(1,1,1); d_lab.Font = Enum.Font.Code; d_lab.BackgroundTransparency = 1; d_lab.TextSize = 11
+    local d_lab = Instance.new("TextLabel", n_frame); d_lab.Size = UDim2.new(1, 0, 0, 35); d_lab.Position = UDim2.new(0, 0, 0, 25); d_lab.Text = text; d_lab.TextColor3 = Color3.new(1,1,1); d_lab.Font = Enum.Font.Code; d_lab.BackgroundTransparency = 1; d_lab.TextSize = 11
     n_frame:TweenPosition(UDim2.new(1, -210, 0.8, 0), "Out", "Back", 0.3)
     task.spawn(function() task.wait(3); if n_frame then n_frame:TweenPosition(UDim2.new(1, 10, 0.8, 0), "In", "Quad", 0.3); task.wait(0.4); n_frame:Destroy() end end)
 end
 
 --------------------------------------------------
--- [ 3. АНИМАЦИЯ (ID 11318961749) ]
+-- [ 3. КАРТИНКА (ID 11318961749) ]
 --------------------------------------------------
-local function ApplyAnime(parent)
+local function ApplyImage(parent)
     local holder = Instance.new("Frame", parent)
-    holder.Size = UDim2.new(0, 120, 0, 120); holder.Position = UDim2.new(1, 10, 0, 0); holder.BackgroundColor3 = Color3.fromRGB(15, 15, 20); Instance.new("UICorner", holder); Instance.new("UIStroke", holder).Color = Color3.new(0, 1, 1)
-    local img = Instance.new("ImageLabel", holder); img.Size = UDim2.new(1, 0, 1, 0); img.BackgroundTransparency = 1; img.Image = "rbxassetid://11318961749"
-    local spriteSize = Vector2.new(200, 200) 
-    img.ImageRectSize = spriteSize
-    task.spawn(function()
-        while task.wait(0.06) do
-            for y = 0, 4 do for x = 0, 4 do img.ImageRectOffset = Vector2.new(x * spriteSize.X, y * spriteSize.Y) task.wait(0.06) end end
-        end
-    end)
+    holder.Size = UDim2.new(0, 140, 0, 140) -- Чуть увеличил размер
+    holder.Position = UDim2.new(1, 15, 0, 0)
+    holder.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    Instance.new("UICorner", holder)
+    Instance.new("UIStroke", holder).Color = Color3.new(0, 1, 1)
+    
+    local img = Instance.new("ImageLabel", holder)
+    img.Size = UDim2.new(0.9, 0, 0.9, 0)
+    img.Position = UDim2.new(0.05, 0, 0.05, 0)
+    img.BackgroundTransparency = 1
+    img.Image = "rbxassetid://11318961749" -- Твой ID
+    img.ScaleType = Enum.ScaleType.Fit -- Картинка впишется полностью
 end
 
 --------------------------------------------------
@@ -66,10 +68,10 @@ end
 --------------------------------------------------
 _G.Aimbot = false; _G.TriggerBot = false; _G.FullBright = false; _G.Bhop = false; _G.OutlineEsp = false
 
-local sg = Instance.new("ScreenGui", pg); sg.Name = "Terminator_V17_3"; sg.ResetOnSpawn = false
+local sg = Instance.new("ScreenGui", pg); sg.Name = "Terminator_V17_5"; sg.ResetOnSpawn = false
 local main = Instance.new("Frame", sg); main.Size = UDim2.new(0, 300, 0, 400); main.Position = UDim2.new(0.5, -150, 0.5, -200); main.BackgroundColor3 = Color3.fromRGB(10,10,15); main.Visible = true; main.Draggable = true; main.Active = true; Instance.new("UICorner", main); Instance.new("UIStroke", main).Color = Color3.new(0,1,1)
 
-ApplyAnime(main)
+ApplyImage(main) -- Теперь просто картинка
 
 local scroll = Instance.new("ScrollingFrame", main); scroll.Size = UDim2.new(1, -20, 1, -50); scroll.Position = UDim2.new(0, 10, 0, 45); scroll.BackgroundTransparency = 1; scroll.ScrollBarThickness = 0; Instance.new("UIListLayout", scroll).Padding = UDim.new(0, 5)
 
@@ -121,4 +123,5 @@ rs.RenderStepped:Connect(function()
 end)
 
 uis.InputBegan:Connect(function(k, m) if not m and k.KeyCode == Enum.KeyCode.L then main.Visible = not main.Visible end end)
-Notify("LOADED", "Press L to Hide", Color3.new(0, 1, 1))
+
+Notify("TERMINATOR READY", "Image Loaded Correctly", Color3.new(0, 1, 1))
